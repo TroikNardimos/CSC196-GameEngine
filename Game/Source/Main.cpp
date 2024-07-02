@@ -1,62 +1,104 @@
+#include "../../Engine/Source/Renderer.h"
 #include <SDL.h>
 #include <stdlib.h>
 #include <iostream>
+#include "../../Engine/Source/Vector2.h"
+#include <vector>
+#include "../../Engine/Source/Input.h"
 
-//GitHub: 
+//GitHub: https://github.com/TroikNardimos/CSC196-GameEngine
 
 int main(int argc, char* argv[])
 {
-	// initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	// create systems
+	Renderer renderer;
+	renderer.Initialize();
+	renderer.CreateWindow("Game Engine", 800, 600);
+
+	Input input;
+	input.Initialize();
+
+	Vector2 v1{ 400, 300 };
+	Vector2 v2{ 700, 500 };
+
+	std::vector<Vector2> points;
+
+	//for (int i = 0; i < 100; i++)
+	//{
+	//	points.push_back(Vector2{ rand() % 800, rand() % 600});
+	//}
+
+	bool quit = false;
+	while (!quit)
 	{
-		std::cerr << "Error initializing SDL: " << SDL_GetError() << std::endl;
-		return 1;
-	}
+		// input
+		// update
+		// draw
 
-	// create window
-	// returns pointer to window if successful or nullptr if failed
-	SDL_Window* window = SDL_CreateWindow("Game Engine",
-		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		800, 600,
-		SDL_WINDOW_SHOWN);
-	if (window == nullptr)
-	{
-		std::cerr << "Error creating SDL window: " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		return 1;
-	}
+		// INPUT
+		input.Update();
 
-	// create renderer
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
-
-	while (true)
-	{
-		// clear screen
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-		SDL_RenderClear(renderer);
-
-		// draw line
-		//SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
-		//SDL_RenderDrawLine(renderer, 0, 0, 600, 800);
-		
-		// draw square
-		//SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
-		//SDL_RenderDrawLine(renderer, 300, 200, 500, 200);
-		//SDL_RenderDrawLine(renderer, 500, 200, 500, 400);
-		//SDL_RenderDrawLine(renderer, 500, 400, 300, 400);
-		//SDL_RenderDrawLine(renderer, 300, 400, 300, 200);
-
-		//draw random
-		for (int i = 0; i < 1000; i++)
+		if (input.GetKeyDown(SDL_SCANCODE_ESCAPE))
 		{
-			int value = rand() % 1000; // generate a number between 0-999
-			SDL_SetRenderDrawColor(renderer, rand() % 256, rand() % 256, rand() % 256, 0); // create random color
-			SDL_RenderDrawLine(renderer, rand() % 800, rand() % 600, rand() % 800, rand() % 600);
-			SDL_RenderDrawPoint(renderer, rand() % 800, rand() % 600);
+			quit = true;
 		}
 
-		// show screen
-		SDL_RenderPresent(renderer);
+		// UPDATE
+		Vector2 mousePosition = input.GetMousePosition();
+		//std::cout << mousePosition.x << " " << mousePosition.y << std::endl;
+		if (input.GetMouseButtonDown(0) && !input.GetPreviousMouseButtonDown(0))
+		{
+			std::cout << "mouse pressed\n";
+			points.push_back(mousePosition);
+		}
+		if (input.GetMouseButtonDown(0) && input.GetPreviousMouseButtonDown(0))
+		{
+			float distance = (points.back() - mousePosition).Lenght();
+			if (distance > 50) points.push_back(mousePosition);
+		}
+
+		// [p, p, p, p]
+		//Vector2 speed{ 0.1f, -0.1f };
+		//for (Vector2& point : points)
+		//{
+		//	point = point + 0.002f;
+		//}
+
+		// DRAW
+		//// clear screen
+		renderer.SetColour(0, 0, 0, 0);
+		renderer.BeginFrame();
+
+		//// draw line
+		//renderer.SetColour(255, 255, 255, 0);
+		//renderer.DrawLine(0, 0, 800, 600);
+
+		//// draw square
+		//renderer.SetColour(255, 255, 255, 0);
+		//renderer.DrawLine(300, 200, 500, 200);
+		//renderer.DrawLine(500, 200, 500, 400);
+		//renderer.DrawLine(500, 400, 300, 400);
+		//renderer.DrawLine(300, 400, 300, 200);
+		//renderer.DrawLine(v1.x, v1.y, v2.x, v2.y);
+
+		//draw random Vector2
+		renderer.SetColour(255, 255, 255, 0);
+		for (int i = 0; points.size() > 1 && i < points.size() - 1; i++)
+		{
+			renderer.SetColour(rand() % 256, rand() % 256, rand() % 256, 0);
+			renderer.DrawLine(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
+		}
+
+		////draw random
+		//for (int i = 0; i < 100; i++)
+		//{
+		//	renderer.SetColour(rand() % 256, rand() % 256, rand() % 256, 0);
+		//	renderer.DrawLine(rand() % 800, rand() % 600, rand() % 800, rand() % 600);
+		//	renderer.DrawPoint(rand() % 800, rand() % 600);
+		//}
+
+		//// show screen
+		renderer.EndFrame();
 	}
 
 	return 0;
