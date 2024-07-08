@@ -8,6 +8,7 @@
 #include "../../Engine/Source/Vector2.h"
 #include <vector>
 #include "../../Engine/Source/Input.h"
+#include <fmod.hpp>
 
 //GitHub: https://github.com/TroikNardimos/CSC196-GameEngine
 
@@ -17,13 +18,30 @@ int main(int argc, char* argv[])
 	Renderer renderer;
 	renderer.Initialize();
 	renderer.CreateWindow("Game Engine", 800, 600);
+	FMOD::System* audio;
+	FMOD::System_Create(&audio);
+
+	void* extradriverdata = nullptr;
+	audio->init(32, FMOD_INIT_NORMAL, extradriverdata);
+
+	FMOD::Sound* sound = nullptr;
+	std::vector<FMOD::Sound*> sounds;
+
+	audio->createSound("bass.wav", FMOD_DEFAULT, 0, &sound);
+	sounds.push_back(sound);
+
+	audio->createSound("snare.wav", FMOD_DEFAULT, 0, &sound);
+	sounds.push_back(sound);
+
+	audio->createSound("open-hat.wav", FMOD_DEFAULT, 0, &sound);
+	sounds.push_back(sound);
 
 	Input input;
 	input.Initialize();
 
 	Time time;
 
-	std::vector<Particle> particles;
+	//std::vector<Particle> particles;
 	//for (int i = 0; i < 0000; i++)
 	//{
 	//	particles.push_back(Particle{ {rand() % 800, rand() % 600}, { randomf(100, 300), 0.0 }});
@@ -42,6 +60,8 @@ int main(int argc, char* argv[])
 	bool quit = false;
 	while (!quit)
 	{
+		audio->update();
+
 		time.Tick();
 		//std::cout << time.GetTime() << std::endl;
 
@@ -60,17 +80,17 @@ int main(int argc, char* argv[])
 		// UPDATE
 		Vector2 mousePosition = input.GetMousePosition();
 
-		if (input.GetMouseButtonDown(0))
-		{
-			particles.push_back(Particle{ {mousePosition}, { randomf(-10, 10), randomf(-10, 10) }, randomf(20)});
-		}
+		//if (input.GetMouseButtonDown(0))
+		//{
+		//	particles.push_back(Particle{ {mousePosition}, { randomf(-10, 10), randomf(-10, 10) }, randomf(20)});
+		//}
 
-		for (Particle& particle : particles)
-		{
-			particle.Update(time.GetDeltaTime());
-			/*if (particle.position.x > 800) particle.position.x = 0;
-			if (particle.position.x < 0) particle.position.x = 800;*/
-		}
+		//for (Particle& particle : particles)
+		//{
+		//	particle.Update(time.GetDeltaTime());
+		//	/*if (particle.position.x > 800) particle.position.x = 0;
+		//	if (particle.position.x < 0) particle.position.x = 800;*/
+		//}
 
 		//std::cout << mousePosition.x << " " << mousePosition.y << std::endl;
 		//if (input.GetMouseButtonDown(0) && !input.GetPreviousMouseButtonDown(0))
@@ -83,6 +103,19 @@ int main(int argc, char* argv[])
 		//	float distance = (points.back() - mousePosition).Lenght();
 		//	if (distance > 10) points.push_back(mousePosition);
 		//}
+
+		if (input.GetKeyDown(SDL_SCANCODE_Q) && !input.GetPreviousKeyDown(SDL_SCANCODE_Q))
+		{
+			audio->playSound(sounds[0], nullptr, false, nullptr);
+		}
+		if (input.GetKeyDown(SDL_SCANCODE_W) && !input.GetPreviousKeyDown(SDL_SCANCODE_W))
+		{
+			audio->playSound(sounds[1], nullptr, false, nullptr);
+		}
+		if (input.GetKeyDown(SDL_SCANCODE_E) && !input.GetPreviousKeyDown(SDL_SCANCODE_E))
+		{
+			audio->playSound(sounds[2], nullptr, false, nullptr);
+		}
 
 		// [p, p, p, p]
 		//Vector2 speed{ 0.1f, -0.1f };
@@ -100,12 +133,12 @@ int main(int argc, char* argv[])
 		renderer.SetColour(255, 255, 255, 0);
 		//renderer.DrawLine(0, 0, 800, 600);
 
-		for (Particle particle : particles)
-		{
-			renderer.SetColour(rand() % 256, rand() % 256, rand() % 256, 0);
+		//for (Particle particle : particles)
+		//{
+		//	renderer.SetColour(rand() % 256, rand() % 256, rand() % 256, 0);
 
-			particle.Draw(renderer);
-		}
+		//	particle.Draw(renderer);
+		//}
 
 		//// draw square
 		//renderer.SetColour(255, 255, 255, 0);
