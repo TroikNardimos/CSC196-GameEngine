@@ -2,12 +2,16 @@
 #include "../../Engine/Source/Particle.h"
 #include "../../Engine/Source/Random.h"
 #include "../../Engine/Source/ETime.h"
-#include <SDL.h>
-#include <stdlib.h>
-#include <iostream>
+#include "../../Engine/Source/MathUtils.h"
 #include "../../Engine/Source/Vector2.h"
-#include <vector>
 #include "../../Engine/Source/Input.h"
+#include "../../Engine/Source/Model.h"
+#include "../../Engine/Source/Transform.h"
+
+#include <iostream>
+#include <SDL.h>
+#include <vector>
+#include <stdlib.h>
 #include <fmod.hpp>
 
 //GitHub: https://github.com/TroikNardimos/CSC196-GameEngine
@@ -24,39 +28,52 @@ int main(int argc, char* argv[])
 	void* extradriverdata = nullptr;
 	audio->init(32, FMOD_INIT_NORMAL, extradriverdata);
 
-	FMOD::Sound* sound = nullptr;
-	std::vector<FMOD::Sound*> sounds;
+	//FMOD::Sound* sound = nullptr;
+	//std::vector<FMOD::Sound*> sounds;
 
-	audio->createSound("bass.wav", FMOD_DEFAULT, 0, &sound);
-	sounds.push_back(sound);
+	//audio->createSound("bass.wav", FMOD_DEFAULT, 0, &sound);
+	//sounds.push_back(sound);
 
-	audio->createSound("snare.wav", FMOD_DEFAULT, 0, &sound);
-	sounds.push_back(sound);
+	//audio->createSound("snare.wav", FMOD_DEFAULT, 0, &sound);
+	//sounds.push_back(sound);
 
-	audio->createSound("open-hat.wav", FMOD_DEFAULT, 0, &sound);
-	sounds.push_back(sound);
+	//audio->createSound("open-hat.wav", FMOD_DEFAULT, 0, &sound);
+	//sounds.push_back(sound);
+
+	//audio->createSound("clap.wav", FMOD_DEFAULT, 0, &sound);
+	//sounds.push_back(sound);
+
+	//audio->createSound("cowbell.wav", FMOD_DEFAULT, 0, &sound);
+	//sounds.push_back(sound);
+
+	//audio->createSound("close-hat.wav", FMOD_DEFAULT, 0, &sound);
+	//sounds.push_back(sound);
 
 	Input input;
 	input.Initialize();
 
 	Time time;
 
-	//std::vector<Particle> particles;
-	//for (int i = 0; i < 0000; i++)
-	//{
-	//	particles.push_back(Particle{ {rand() % 800, rand() % 600}, { randomf(100, 300), 0.0 }});
-	//}
+	std::vector<Particle> particles;
 
-	//Vector2 v1{ 400, 300 };
-	//Vector2 v2{ 700, 500 };
+	float offset = 0;
 
-	//std::vector<Vector2> points;
+	std::vector<Vector2> points;
+	points.push_back(Vector2{ 5, 0});
+	points.push_back(Vector2{ -5, -5});
+	points.push_back(Vector2{ -5, 5});
+	points.push_back(Vector2{ 5, 0});
+	Model model{ points, Colour{ 1, 0, 0 } };
+	Transform transform{ {renderer.GetWidth() >> 1, renderer.GetHeight() >> 1}, 0, 5};
 
-	//for (int i = 0; i < 100; i++)
-	//{
-	//	points.push_back(Vector2{ rand() % 800, rand() % 600});
-	//}
+	// 0001 = 1
+	// 0010 = 2
+	// 0100 = 4
+	// 1000 = 8
+	// 1000 >> 1 = 0100
+	// 0100 << 1 = 1000
 
+	// main loop
 	bool quit = false;
 	while (!quit)
 	{
@@ -77,51 +94,59 @@ int main(int argc, char* argv[])
 			quit = true;
 		}
 
+		float thrust = 0;
+		if (input.GetKeyDown(SDL_SCANCODE_UP)) thrust = 400;
+		if (input.GetKeyDown(SDL_SCANCODE_DOWN)) thrust = -400;
+
+		if (input.GetKeyDown(SDL_SCANCODE_LEFT)) transform.rotation -= Math::DegToRad(100) * time.GetDeltaTime();
+		if (input.GetKeyDown(SDL_SCANCODE_RIGHT)) transform.rotation += Math::DegToRad(100) * time.GetDeltaTime();
+
+		Vector2 velocity = Vector2{ thrust, 0.0f}.Rotate(transform.rotation);
+		transform.position += velocity * time.GetDeltaTime();
+		transform.position.x = Math::Wrap(transform.position.x, (float)renderer.GetWidth());
+		transform.position.y = Math::Wrap(transform.position.y, (float)renderer.GetHeight());
+		//transform.rotation = velocity.Angle();//rotation + time.GetDeltaTime();
+
 		// UPDATE
 		Vector2 mousePosition = input.GetMousePosition();
 
-		//if (input.GetMouseButtonDown(0))
-		//{
-		//	particles.push_back(Particle{ {mousePosition}, { randomf(-10, 10), randomf(-10, 10) }, randomf(20)});
-		//}
-
-		//for (Particle& particle : particles)
-		//{
-		//	particle.Update(time.GetDeltaTime());
-		//	/*if (particle.position.x > 800) particle.position.x = 0;
-		//	if (particle.position.x < 0) particle.position.x = 800;*/
-		//}
-
-		//std::cout << mousePosition.x << " " << mousePosition.y << std::endl;
-		//if (input.GetMouseButtonDown(0) && !input.GetPreviousMouseButtonDown(0))
-		//{
-		//	std::cout << "mouse pressed\n";
-		//	points.push_back(mousePosition);
-		//}
-		//if (input.GetMouseButtonDown(0) && input.GetPreviousMouseButtonDown(0))
-		//{
-		//	float distance = (points.back() - mousePosition).Lenght();
-		//	if (distance > 10) points.push_back(mousePosition);
-		//}
-
-		if (input.GetKeyDown(SDL_SCANCODE_Q) && !input.GetPreviousKeyDown(SDL_SCANCODE_Q))
+		if (input.GetMouseButtonDown(0))
 		{
-			audio->playSound(sounds[0], nullptr, false, nullptr);
-		}
-		if (input.GetKeyDown(SDL_SCANCODE_W) && !input.GetPreviousKeyDown(SDL_SCANCODE_W))
-		{
-			audio->playSound(sounds[1], nullptr, false, nullptr);
-		}
-		if (input.GetKeyDown(SDL_SCANCODE_E) && !input.GetPreviousKeyDown(SDL_SCANCODE_E))
-		{
-			audio->playSound(sounds[2], nullptr, false, nullptr);
+			particles.push_back(Particle{ {mousePosition}, randomOnUnitCircle() * randomf(50, 300), randomf(1 ,3)});
 		}
 
-		// [p, p, p, p]
-		//Vector2 speed{ 0.1f, -0.1f };
-		//for (Vector2& point : points)
+		for (Particle& particle : particles)
+		{
+			particle.Update(time.GetDeltaTime());
+			if (particle.position.x > 800) particle.position.x = 0;
+			if (particle.position.x < 0) particle.position.x = 800;
+			if (particle.position.y > 600) particle.position.y = 0;
+			if (particle.position.y < 0) particle.position.y = 600;
+		}
+
+		//if (input.GetKeyDown(SDL_SCANCODE_Q) && !input.GetPreviousKeyDown(SDL_SCANCODE_Q))
 		//{
-		//	point = point + 0.002f;
+		//	audio->playSound(sounds[0], nullptr, false, nullptr);
+		//}
+		//if (input.GetKeyDown(SDL_SCANCODE_W) && !input.GetPreviousKeyDown(SDL_SCANCODE_W))
+		//{
+		//	audio->playSound(sounds[1], nullptr, false, nullptr);
+		//}
+		//if (input.GetKeyDown(SDL_SCANCODE_E) && !input.GetPreviousKeyDown(SDL_SCANCODE_E))
+		//{
+		//	audio->playSound(sounds[2], nullptr, false, nullptr);
+		//}
+		//if (input.GetKeyDown(SDL_SCANCODE_R) && !input.GetPreviousKeyDown(SDL_SCANCODE_E))
+		//{
+		//	audio->playSound(sounds[3], nullptr, false, nullptr);
+		//}
+		//if (input.GetKeyDown(SDL_SCANCODE_T) && !input.GetPreviousKeyDown(SDL_SCANCODE_E))
+		//{
+		//	audio->playSound(sounds[4], nullptr, false, nullptr);
+		//}
+		//if (input.GetKeyDown(SDL_SCANCODE_Y) && !input.GetPreviousKeyDown(SDL_SCANCODE_E))
+		//{
+		//	audio->playSound(sounds[5], nullptr, false, nullptr);
 		//}
 
 		// DRAW
@@ -129,40 +154,29 @@ int main(int argc, char* argv[])
 		renderer.SetColour(0, 0, 0, 0);
 		renderer.BeginFrame();
 
-		//// draw line
 		renderer.SetColour(255, 255, 255, 0);
-		//renderer.DrawLine(0, 0, 800, 600);
 
-		//for (Particle particle : particles)
-		//{
-		//	renderer.SetColour(rand() % 256, rand() % 256, rand() % 256, 0);
+		float radius = 100;
+		offset += (90 * time.GetDeltaTime());
+		for (float angle = 0; angle < 360; angle += 360 / 30)
+		{
+			float x = Math::Cos(Math::DegToRad(angle + offset)) * Math::Sin((offset + angle) * 0.01f) * radius;
+			float y = Math::Sin(Math::DegToRad(angle + offset)) * Math::Cos((offset + angle) * 0.01f) * radius;
 
-		//	particle.Draw(renderer);
-		//}
+			renderer.SetColour(rand() % 256, rand() % 256, rand() % 256, 0);
+			//renderer.DrawRect(400 + x, 300 + y, randomf(1, 40), randomf(1, 40));
+		}
 
-		//// draw square
-		//renderer.SetColour(255, 255, 255, 0);
-		//renderer.DrawLine(300, 200, 500, 200);
-		//renderer.DrawLine(500, 200, 500, 400);
-		//renderer.DrawLine(500, 400, 300, 400);
-		//renderer.DrawLine(300, 400, 300, 200);
-		//renderer.DrawLine(v1.x, v1.y, v2.x, v2.y);
+		//draw particles
+		for (Particle particle : particles)
+		{
+			renderer.SetColour(rand() % 256, rand() % 256, rand() % 256, 0);
 
-		//draw random Vector2
-		//renderer.SetColour(255, 255, 255, 0);
-		//for (int i = 0; points.size() > 1 && i < points.size() - 1; i++)
-		//{
-		//	renderer.SetColour(rand() % 256, rand() % 256, rand() % 256, 0);
-		//	renderer.DrawLine(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
-		//}
+			particle.Draw(renderer);
+		}
 
-		////draw random
-		//for (int i = 0; i < 100; i++)
-		//{
-		//	renderer.SetColour(rand() % 256, rand() % 256, rand() % 256, 0);
-		//	renderer.DrawLine(rand() % 800, rand() % 600, rand() % 800, rand() % 600);
-		//	renderer.DrawPoint(rand() % 800, rand() % 600);
-		//}
+		renderer.SetColour(255, 255, 255, 0);
+		model.Draw(renderer, transform);
 
 		//// show screen
 		renderer.EndFrame();
