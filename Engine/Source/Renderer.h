@@ -1,9 +1,11 @@
 #pragma once
 #include <SDL.h>
 #include <string>
+#include <SDL_ttf.h>
 
 class Renderer
 {
+	friend class Text;
 public:
 	Renderer() = default;
 
@@ -25,7 +27,7 @@ public:
 	int GetWidth() const { return m_width; }
 	int GetHeight() const { return m_height; }
 
-private:
+protected:
 	SDL_Window* m_window{ nullptr };
 	SDL_Renderer* m_renderer{ nullptr };
 	

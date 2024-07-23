@@ -9,12 +9,20 @@ bool Renderer::Initialize()
 		std::cerr << "Error initializing SDL: " << SDL_GetError() << std::endl;
 		return false;
 	}
+	// initialize TTF SDL
+	if (TTF_Init() < 0)
+	{
+		std::cerr << "Error initiating SDL TTF: " << SDL_GetError() << std::endl;
+		return false;
+	}
 	return true;
 }
 
 void Renderer::Shutdown()
 {
-
+	SDL_DestroyRenderer(m_renderer);
+	SDL_DestroyWindow(m_window);
+	TTF_Quit();
 }
 
 bool Renderer::CreateWindow(std::string title, int width, int height)
@@ -35,7 +43,13 @@ bool Renderer::CreateWindow(std::string title, int width, int height)
 	}
 
 	// create renderer
-	m_renderer = SDL_CreateRenderer(m_window, -1, 0);
+	m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	if (m_renderer == nullptr)
+	{
+		std::cerr << "Error creating SDL window: " << SDL_GetError() << std::endl;
+		SDL_Quit();
+		return false;
+	}
 	return true;
 }
 
