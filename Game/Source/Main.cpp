@@ -16,12 +16,8 @@ int main(int argc, char* argv[])
 	g_engine.Initialize();
 
 	// add audio sounds
-	g_engine.GetAudio().AddSound("bass.wav");
-	g_engine.GetAudio().AddSound("snare.wav");
-	g_engine.GetAudio().AddSound("open-hat.wav");
-	g_engine.GetAudio().AddSound("clap.wav");
-	g_engine.GetAudio().AddSound("cowbell.wav");
-	g_engine.GetAudio().AddSound("close-hat.wav");
+	g_engine.GetAudio().AddSound("background-music-space.mp3");
+	g_engine.GetAudio().PlaySound("background-music-space.mp3");
 
 	Time time;
 
@@ -46,7 +42,7 @@ int main(int argc, char* argv[])
 	Scene* scene = new Scene();
 
 	Transform transform{ Vector2{ 400, 300}, 0, 5};
-	Player* player = new Player(900, transform, model);
+	std::unique_ptr<Actor> player(new Player(500.0f, transform, model));
 	player->SetDamping(2.0f);
 	scene->AddActor(player);
 
@@ -54,16 +50,16 @@ int main(int argc, char* argv[])
 	font->Load("ArcadeClassic.ttf", 20);
 
 	Text* text = new Text(font);
-	text->Create(g_engine.GetRenderer(), "Hello World!", Colour{ 1, 1, 1, 1 });
+	//text->Create(g_engine.GetRenderer(), std::to_string(player->GetScore()), Colour{1, 1, 1, 1});
 
-	for (int i = 0; i < 1; i++)
-	{
-		//Transform transform{ Vector2{ randomf(0,800), randomf(0,600)}, 0, randomf(1,5) };
-		auto* enemyModel = new Model{ points, Colour{ 1, 0, 1 } };
-		auto* enemy = new Enemy(800, Transform{ { 300, 300 }, 0, 2 }, enemyModel);
-		//player->SetDamping(2.0f);
-		scene->AddActor(enemy);
-	}
+	//for (int i = 0; i < 1; i++)
+	//{
+	//	Transform transform{ Vector2{ randomf(0,800), randomf(0,600)}, 0, randomf(1,5) };
+	//	auto* enemyModel = new Model{ points, Colour{ 1, 0, 1 } };
+	//	auto* enemy = new Enemy(800, Transform{ { 300, 300 }, 0, 2 }, enemyModel);
+	//	enemy->SetDamping(2.0f);
+	//	scene->AddActor(enemy);
+	//}
 
 	// main loop
 	bool quit = false;
@@ -93,10 +89,10 @@ int main(int argc, char* argv[])
 
 		Vector2 mousePosition = g_engine.GetInput().GetMousePosition();
 
-		if (g_engine.GetInput().GetMouseButtonDown(0))
-		{
-			particles.push_back(Particle{ {mousePosition}, randomOnUnitCircle() * randomf(50, 300), randomf(1 ,3)});
-		}
+		//if (g_engine.GetInput().GetMouseButtonDown(0))
+		//{
+		//	particles.push_back(Particle{ {mousePosition}, randomOnUnitCircle() * randomf(50, 300), randomf(1 ,3)});
+		//}
 
 		for (Particle& particle : particles)
 		{
@@ -109,27 +105,7 @@ int main(int argc, char* argv[])
 
 		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_Q) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_Q))
 		{
-			g_engine.GetAudio().PlaySound("bass.wav");
-		}
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_W) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_W))
-		{
-			g_engine.GetAudio().PlaySound("snare.wav");
-		}
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_E) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_E))
-		{
-			g_engine.GetAudio().PlaySound("open-hat.wav");
-		}
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_R) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_E))
-		{
-			g_engine.GetAudio().PlaySound("clap.wav");
-		}
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_T) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_E))
-		{
-			g_engine.GetAudio().PlaySound("cowbell.wav");
-		}
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_Y) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_E))
-		{
-			g_engine.GetAudio().PlaySound("close-hat.wav");
+			g_engine.GetAudio().PlaySound("");
 		}
 
 		// DRAW
@@ -162,7 +138,7 @@ int main(int argc, char* argv[])
 		scene->Draw(g_engine.GetRenderer());
 
 
-		text->Draw(g_engine.GetRenderer(), 40, 40);
+		//text->Draw(g_engine.GetRenderer(), 40, 40);
 
 		//// show screen
 		g_engine.GetRenderer().EndFrame();

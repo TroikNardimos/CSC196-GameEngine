@@ -15,7 +15,7 @@ void Model::Draw(Renderer& renderer, const Vector2& position, float angle, float
 	}
 }
 
-void Model::Draw(Renderer& renderer, Transform& transform)
+void Model::Draw(Renderer& renderer, const Transform& transform)
 {
 	if (m_points.empty()) return;
 
@@ -28,4 +28,20 @@ void Model::Draw(Renderer& renderer, Transform& transform)
 
 		renderer.DrawLine(p1.x, p1.y, p2.x, p2.y);
 	}
+}
+
+float Model::GetRadius()
+{
+	float radius = 0;
+
+	for (const Vector2& point : m_points)
+	{
+		float r = point.Lenght();
+		if (r > radius)
+		{
+			radius = r;
+		}
+	}
+
+	return radius;
 }

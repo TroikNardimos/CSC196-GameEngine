@@ -1,5 +1,6 @@
 #pragma once
 #include "../../Engine/Source/Actor.h"
+#include <iostream>
 
 class Bullet : public Actor
 {
@@ -13,10 +14,17 @@ public:
 		Actor{ transform, model },
 		m_speed{ speed }
 	{}
+	Bullet(float speed, float damage, const Transform& transform, Model* model) :
+		Actor{ transform, model },
+		m_speed{ speed },
+		m_damage{ damage }
+	{}
 
 	void Update(float dt);
+	virtual void OnCollision(Actor* actor);
 
 private:
 	float m_speed = 0;
+	float m_damage = 0;
 
 };

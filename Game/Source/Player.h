@@ -15,9 +15,15 @@ public:
 	{}
 
 	void Update(float dt);
+	float GetScore() { return m_score; }
+	void AddScore(int score) { m_score += score; }
+
+	virtual void OnCollision(Actor* actor);
 
 private:
 	float m_speed = 0;
 	float m_fireTimer = 0;
+	int m_score = 0;
+	int m_lives = 3;
 
 };

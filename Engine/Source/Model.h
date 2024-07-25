@@ -3,7 +3,6 @@
 #include "Colour.h"
 #include "Renderer.h"
 #include "Transform.h"
-
 #include <vector>
 
 // * - pointer -> nullptr
@@ -19,7 +18,9 @@ public:
 	{}
 
 	void Draw(Renderer& renderer, const Vector2& position, float angle, float scale);
-	void Draw(Renderer& renderer, Transform& transform);
+	void Draw(Renderer& renderer, const Transform& transform);
+
+	float GetRadius();
 
 private:
 	std::vector<Vector2> m_points;
