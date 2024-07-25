@@ -16,6 +16,8 @@ public:
 
 	void AddActor(Actor* actor);
 
+	void RemoveAll();
+
 	template<typename T>
 	T* GetActor();
 	

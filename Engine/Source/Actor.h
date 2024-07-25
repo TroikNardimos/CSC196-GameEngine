@@ -1,6 +1,6 @@
 #pragma once
 #include "Transform.h"
-//#include "Model.h"
+#include "Model.h"
 
 class Model;
 class Renderer;
