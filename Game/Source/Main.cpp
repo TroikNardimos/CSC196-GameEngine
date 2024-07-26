@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 #include <stdlib.h>
 #include "../../Engine/Source/Font.h"
 #include "../../Engine/Source/Text.h"
@@ -16,64 +17,75 @@ int main(int argc, char* argv[])
 	g_engine.Initialize();
 
 	// add audio sounds
-	g_engine.GetAudio().AddSound("bass.wav");
-	g_engine.GetAudio().AddSound("snare.wav");
-	g_engine.GetAudio().AddSound("open-hat.wav");
-	g_engine.GetAudio().AddSound("clap.wav");
-	g_engine.GetAudio().AddSound("cowbell.wav");
-	g_engine.GetAudio().AddSound("close-hat.wav");
+	g_engine.GetAudio().AddSound("background-music-space.mp3");
+	g_engine.GetAudio().AddSound("rocket.wav");
+	g_engine.GetAudio().AddSound("laser.wav");
+	g_engine.GetAudio().AddSound("ship-death.wav");
+	g_engine.GetAudio().PlaySound("background-music-space.mp3");
 
 	Time time;
 
 	std::vector<Particle> particles;
 
+	//int state = 0;
+
 	float offset = 0;
 
-	std::vector<Vector2> points;
-	points.push_back(Vector2{ 5, 0});
-	points.push_back(Vector2{ 1, 2});
-	points.push_back(Vector2{ 2, 3});
-	points.push_back(Vector2{ -3, 4});
-	points.push_back(Vector2{ -4, 2});
-	points.push_back(Vector2{ -2, 0});
-	points.push_back(Vector2{ -4, -2});
-	points.push_back(Vector2{ -3, -4});
-	points.push_back(Vector2{ 2, -3});
-	points.push_back(Vector2{ 1, -2});
-	points.push_back(Vector2{ 5, 0});
-	Model* model = new Model{ points, Colour{ 1, 0, 0 } };
+	std::vector<Vector2> playerPoints;
+	playerPoints.push_back(Vector2{ 5, 0});
+	playerPoints.push_back(Vector2{ 1, 2});
+	playerPoints.push_back(Vector2{ 2, 3});
+	playerPoints.push_back(Vector2{ -3, 4});
+	playerPoints.push_back(Vector2{ -4, 2});
+	playerPoints.push_back(Vector2{ -2, 0});
+	playerPoints.push_back(Vector2{ -4, -2});
+	playerPoints.push_back(Vector2{ -3, -4});
+	playerPoints.push_back(Vector2{ 2, -3});
+	playerPoints.push_back(Vector2{ 1, -2});
+	playerPoints.push_back(Vector2{ 5, 0});
+	Model* playerModel = new Model{ playerPoints, Colour{ 0, 0, 1 } };
 
-	Scene* scene = new Scene();
+	std::vector<Vector2> enemyPoints;
+	enemyPoints.push_back(Vector2{ 3, 0 });
+	enemyPoints.push_back(Vector2{ -1, 2 });
+	enemyPoints.push_back(Vector2{ -3, 1 });
+	enemyPoints.push_back(Vector2{ -1, 0 });
+	enemyPoints.push_back(Vector2{ -3, -1 });
+	enemyPoints.push_back(Vector2{ -1, -2 });
+	enemyPoints.push_back(Vector2{ 3, 0 });
+	Model* enemyModel = new Model{ enemyPoints, Colour{ 1, 0, 0 } };
+
+	Scene scene;
 
 	Transform transform{ Vector2{ 400, 300}, 0, 5};
-	Player* player = new Player(900, transform, model);
+	auto player = std::make_unique<Player>(900, transform, playerModel);
 	player->SetDamping(2.0f);
-	scene->AddActor(player);
+	player->SetTag("Player");
+	scene.AddActor(std::move(player));
 
 	Font* font = new Font();
-	font->Load("ArcadeClassic.ttf", 20);
+	font->Load("ArcadeClassic.ttf", 40);
 
-	Text* text = new Text(font);
-	text->Create(g_engine.GetRenderer(), "Hello World!", Colour{ 1, 1, 1, 1 });
+	Text* scoreText = new Text(font);
+	Text* livesText = new Text(font);
+	Text* startText = new Text(font);
 
-	for (int i = 0; i < 1; i++)
-	{
-		//Transform transform{ Vector2{ randomf(0,800), randomf(0,600)}, 0, randomf(1,5) };
-		auto* enemyModel = new Model{ points, Colour{ 1, 0, 1 } };
-		auto* enemy = new Enemy(800, Transform{ { 300, 300 }, 0, 2 }, enemyModel);
-		//player->SetDamping(2.0f);
-		scene->AddActor(enemy);
-	}
+	Font* largeFont = new Font();
+	largeFont->Load("ArcadeClassic.ttf", 70);
+
+	Text* loseText = new Text(largeFont);
+	Text* titleText = new Text(largeFont);
+
 
 	// main loop
+	bool start = true;
 	bool quit = false;
+	bool lose = false;
 	while (!quit)
 	{
-
 		g_engine.GetAudio().Update();
 
 		time.Tick();
-		//std::cout << time.GetTime() << std::endl;
 
 		// input
 		// update
@@ -86,51 +98,56 @@ int main(int argc, char* argv[])
 		{
 			quit = true;
 		}
-		//transform.rotation = velocity.Angle();//rotation + time.GetDeltaTime();
 
 		// UPDATE
-		scene->Update(time.GetDeltaTime());
+		scene.Update(time.GetDeltaTime());
 
 		Vector2 mousePosition = g_engine.GetInput().GetMousePosition();
 
-		if (g_engine.GetInput().GetMouseButtonDown(0))
+		if (!start)
 		{
-			particles.push_back(Particle{ {mousePosition}, randomOnUnitCircle() * randomf(50, 300), randomf(1 ,3)});
+			Enemy* pEnemy = scene.GetActor<Enemy>();
+			if (pEnemy == nullptr && !lose)
+			{
+				for (int i = 0; i < random(1, 4); i++)
+				{
+					Transform transform{ Vector2{ randomf(0,800), randomf(0,600)}, 0, 5 };
+					auto enemy = std::make_unique<Enemy>(300, transform, enemyModel);
+					enemy->SetDamping(2.0f);
+					enemy->SetTag("Enemy");
+					scene.AddActor(std::move(enemy));
+				}
+			}
+
+			Player* pPlayer = scene.GetActor<Player>();
+			if (pPlayer != nullptr)
+			{
+				scoreText->Create(g_engine.GetRenderer(), "SCORE " + std::to_string(pPlayer->GetScore()), Colour{ 1, 1, 1, 1 });
+				livesText->Create(g_engine.GetRenderer(), "LIVES " + std::to_string(pPlayer->GetLives()), Colour{ 1, 1, 1, 1 });
+			}
+			else
+			{
+				loseText->Create(g_engine.GetRenderer(), "YOU LOSE", Colour{ 1, 1, 1, 1 });
+				lose = true;
+			}
 		}
+		else
+		{
+			titleText->Create(g_engine.GetRenderer(), "SHIP SHAPE!", Colour{ 1, 1, 1, 1 });
+			startText->Create(g_engine.GetRenderer(), "SPACE TO START", Colour{ 1, 1, 1, 1 });
+			if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_SPACE))
+			{
+				start = false;
+			}
+		}
+
+		particles.push_back(Particle{ {400,300}, randomOnUnitCircle() * randomf(50, 300), 5});
 
 		for (Particle& particle : particles)
 		{
 			particle.Update(time.GetDeltaTime());
-			if (particle.position.x > 800) particle.position.x = 0;
-			if (particle.position.x < 0) particle.position.x = 800;
-			if (particle.position.y > 600) particle.position.y = 0;
-			if (particle.position.y < 0) particle.position.y = 600;
 		}
 
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_Q) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_Q))
-		{
-			g_engine.GetAudio().PlaySound("bass.wav");
-		}
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_W) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_W))
-		{
-			g_engine.GetAudio().PlaySound("snare.wav");
-		}
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_E) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_E))
-		{
-			g_engine.GetAudio().PlaySound("open-hat.wav");
-		}
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_R) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_E))
-		{
-			g_engine.GetAudio().PlaySound("clap.wav");
-		}
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_T) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_E))
-		{
-			g_engine.GetAudio().PlaySound("cowbell.wav");
-		}
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_Y) && !g_engine.GetInput().GetPreviousKeyDown(SDL_SCANCODE_E))
-		{
-			g_engine.GetAudio().PlaySound("close-hat.wav");
-		}
 
 		// DRAW
 		//// clear screen
@@ -139,30 +156,31 @@ int main(int argc, char* argv[])
 
 		g_engine.GetRenderer().SetColour(255, 255, 255, 0);
 
-		float radius = 100;
-		offset += (90 * time.GetDeltaTime());
-		for (float angle = 0; angle < 360; angle += 360 / 30)
-		{
-			float x = Math::Cos(Math::DegToRad(angle + offset)) * Math::Sin((offset + angle) * 0.01f) * radius;
-			float y = Math::Sin(Math::DegToRad(angle + offset)) * Math::Cos((offset + angle) * 0.01f) * radius;
+		g_engine.GetRenderer().SetColour(255, 255, 255, 0);
+		scene.Draw(g_engine.GetRenderer());
 
-			g_engine.GetRenderer().SetColour(rand() % 256, rand() % 256, rand() % 256, 0);
-			//renderer.DrawRect(400 + x, 300 + y, randomf(1, 40), randomf(1, 40));
-		}
-
-		//draw particles
 		for (Particle particle : particles)
 		{
-			g_engine.GetRenderer().SetColour(rand() % 256, rand() % 256, rand() % 256, 0);
+			g_engine.GetRenderer().SetColour(255, 255, 255, 0);
 
 			particle.Draw(g_engine.GetRenderer());
 		}
 
-		g_engine.GetRenderer().SetColour(255, 255, 255, 0);
-		scene->Draw(g_engine.GetRenderer());
-
-
-		text->Draw(g_engine.GetRenderer(), 40, 40);
+		if (start)
+		{
+			titleText->Draw(g_engine.GetRenderer(), 200, 100);
+			startText->Draw(g_engine.GetRenderer(), 250, 400);
+		}
+		else if (lose)
+		{
+			scene.RemoveAll();
+			loseText->Draw(g_engine.GetRenderer(), 250, 100);
+		}
+		else
+		{
+			scoreText->Draw(g_engine.GetRenderer(), 40, 40);
+			livesText->Draw(g_engine.GetRenderer(), 600, 40);
+		}
 
 		//// show screen
 		g_engine.GetRenderer().EndFrame();

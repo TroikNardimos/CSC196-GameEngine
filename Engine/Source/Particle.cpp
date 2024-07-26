@@ -13,6 +13,6 @@ void Particle::Draw(Renderer& renderer)
 {
 	if (lifespan > 0)
 	{
-		renderer.DrawRect(position.x, position.y, 4.0f, 4.0f);
+		renderer.DrawRect(position.x, position.y, 1.0f, 1.0f);
 	}
 }

@@ -1,8 +1,9 @@
 #pragma once
 #include "Transform.h"
 #include "Model.h"
+#include "../../Engine/Source/Scene.h"
+#include <string>
 
-class Model;
 class Renderer;
 class Scene;
 
@@ -25,9 +26,16 @@ public:
 
 	const Transform& GetTransform() { return m_transform; }
 
+	void SetTag(const std::string& tag) { m_tag = tag; }
+	const std::string& GetTag() { return m_tag; }
+
+	virtual void OnCollision(Actor* actor) = 0;
+	float GetRadius() { return (m_model) ? m_model->GetRadius() * m_transform.scale : 0; }
+
 	friend class Scene;
 
 protected:
+	std::string m_tag;
 	bool m_destroyed = false;
 	float m_lifespan = 0;
 
@@ -37,8 +45,5 @@ protected:
 
 	Model* m_model{ nullptr };
 	Scene* m_scene{ nullptr };
-private: 
-
-
 };
 

@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include <memory>
 #include <list>
 
 class Renderer;
@@ -14,7 +14,7 @@ public:
 	void Update(float dt);
 	void Draw(Renderer& renderer);
 
-	void AddActor(Actor* actor);
+	void AddActor(std::unique_ptr<Actor> actor);
 
 	void RemoveAll();
 
@@ -22,7 +22,7 @@ public:
 	T* GetActor();
 	
 protected:
-	std::list<Actor*> m_actors;
+	std::list<std::unique_ptr<Actor>> m_actors;
 
 private:
 
@@ -31,9 +31,9 @@ private:
 template<typename T>
 T* Scene::GetActor()
 {
-	for(Actor* actor : m_actors)
+	for (auto& actor : m_actors)
 	{
-		T* result = dynamic_cast<T*>(actor);
+		T* result = dynamic_cast<T*>(actor.get());
 		if (result) return result;
 	}
 
